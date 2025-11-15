@@ -1,10 +1,522 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>Welcome to Ahler-Air's Website</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>乒乓球游戏</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
+            padding: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+        }
+        
+        canvas {
+            background-color: #111;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: block;
+            width: 100%;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .player-score, .computer-score {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 8px;
+            min-width: 100px;
+            text-align: center;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        button:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #pauseBtn {
+            background: #ff9800;
+        }
+        
+        #pauseBtn:hover {
+            background: #e68900;
+        }
+        
+        #resetBtn {
+            background: #f44336;
+        }
+        
+        #resetBtn:hover {
+            background: #d32f2f;
+        }
+        
+        .instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .instructions h2 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .instructions p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            z-index: 10;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+        }
+        
+        .game-over h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #ffcc00;
+        }
+        
+        .game-over p {
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .score-board {
+                font-size: 1.2rem;
+            }
+            
+            .player-score, .computer-score {
+                min-width: 80px;
+                padding: 8px 15px;
+            }
+            
+            button {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello, World!</h1>
-    <p>This is my very first GitHub Pages website!</p>
+    <div class="container">
+        <header>
+            <h1>乒乓球游戏</h1>
+            <p class="subtitle">挑战电脑对手，看看你能得多少分！</p>
+        </header>
+        
+        <div class="score-board">
+            <div class="player-score">玩家: 0</div>
+            <div class="computer-score">电脑: 0</div>
+        </div>
+        
+        <div class="game-container">
+            <canvas id="gameCanvas" width="800" height="400"></canvas>
+            
+            <div class="game-over" id="gameOver">
+                <h2>游戏结束</h2>
+                <p id="finalScore">你的得分: 0</p>
+                <button id="restartBtn">再来一局</button>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startBtn">开始游戏</button>
+            <button id="pauseBtn">暂停</button>
+            <button id="resetBtn">重置</button>
+        </div>
+        
+        <div class="instructions">
+            <h2>游戏说明</h2>
+            <p>使用鼠标或触摸屏移动球拍，阻止球碰到左侧边界</p>
+            <p>每成功反弹一次得1分，先得10分者获胜</p>
+            <p>球的速度会随着游戏进行逐渐加快</p>
+        </div>
+    </div>
+
+    <script>
+        // 获取Canvas和上下文
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 游戏元素
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 10,
+            speedX: 5,
+            speedY: 5,
+            color: '#4CAF50'
+        };
+        
+        const playerPaddle = {
+            x: 20,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 100,
+            color: '#2196F3',
+            speed: 8
+        };
+        
+        const computerPaddle = {
+            x: canvas.width - 30,
+            y: canvas.height / 2 - 50,
+            width: 10,
+            height: 100,
+            color: '#FF5722',
+            speed: 5
+        };
+        
+        // 游戏状态
+        let playerScore = 0;
+        let computerScore = 0;
+        let gameRunning = false;
+        let gamePaused = false;
+        let animationId;
+        
+        // 获取DOM元素
+        const playerScoreElement = document.querySelector('.player-score');
+        const computerScoreElement = document.querySelector('.computer-score');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const gameOverElement = document.getElementById('gameOver');
+        const finalScoreElement = document.getElementById('finalScore');
+        const restartBtn = document.getElementById('restartBtn');
+        
+        // 鼠标/触摸移动事件
+        canvas.addEventListener('mousemove', movePaddle);
+        canvas.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const mouseY = touch.clientY - rect.top;
+            movePaddle({clientY: mouseY});
+        });
+        
+        function movePaddle(e) {
+            if (!gameRunning || gamePaused) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseY = e.clientY - rect.top;
+            
+            // 更新玩家球拍位置，确保不超出画布
+            playerPaddle.y = mouseY - playerPaddle.height / 2;
+            if (playerPaddle.y < 0) playerPaddle.y = 0;
+            if (playerPaddle.y + playerPaddle.height > canvas.height) {
+                playerPaddle.y = canvas.height - playerPaddle.height;
+            }
+        }
+        
+        // 按钮事件
+        startBtn.addEventListener('click', function() {
+            if (!gameRunning) {
+                startGame();
+            }
+        });
+        
+        pauseBtn.addEventListener('click', function() {
+            if (gameRunning) {
+                togglePause();
+            }
+        });
+        
+        resetBtn.addEventListener('click', resetGame);
+        restartBtn.addEventListener('click', resetGame);
+        
+        // 游戏函数
+        function startGame() {
+            gameRunning = true;
+            gamePaused = false;
+            startBtn.textContent = "重新开始";
+            resetBall();
+            gameLoop();
+        }
+        
+        function togglePause() {
+            gamePaused = !gamePaused;
+            pauseBtn.textContent = gamePaused ? "继续" : "暂停";
+            
+            if (!gamePaused) {
+                gameLoop();
+            }
+        }
+        
+        function resetGame() {
+            gameRunning = false;
+            gamePaused = false;
+            playerScore = 0;
+            computerScore = 0;
+            updateScore();
+            startBtn.textContent = "开始游戏";
+            pauseBtn.textContent = "暂停";
+            gameOverElement.style.display = 'none';
+            resetBall();
+            
+            // 重置球拍位置
+            playerPaddle.y = canvas.height / 2 - playerPaddle.height / 2;
+            computerPaddle.y = canvas.height / 2 - computerPaddle.height / 2;
+            
+            // 清除之前的动画帧
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            
+            // 重绘画布
+            draw();
+        }
+        
+        function resetBall() {
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height / 2;
+            
+            // 随机决定球的初始方向
+            ball.speedX = (Math.random() > 0.5 ? 1 : -1) * 5;
+            ball.speedY = (Math.random() * 2 - 1) * 5;
+        }
+        
+        function updateScore() {
+            playerScoreElement.textContent = `玩家: ${playerScore}`;
+            computerScoreElement.textContent = `电脑: ${computerScore}`;
+        }
+        
+        function checkCollision() {
+            // 球与玩家球拍的碰撞
+            if (ball.x - ball.radius < playerPaddle.x + playerPaddle.width &&
+                ball.x + ball.radius > playerPaddle.x &&
+                ball.y > playerPaddle.y &&
+                ball.y < playerPaddle.y + playerPaddle.height) {
+                
+                // 根据击中球拍的位置调整反弹角度
+                const hitPos = (ball.y - (playerPaddle.y + playerPaddle.height / 2)) / (playerPaddle.height / 2);
+                ball.speedX = Math.abs(ball.speedX) * 1.05; // 每次反弹略微加速
+                ball.speedY = hitPos * 7;
+                
+                // 增加玩家得分
+                playerScore++;
+                updateScore();
+            }
+            
+            // 球与电脑球拍的碰撞
+            if (ball.x + ball.radius > computerPaddle.x &&
+                ball.x - ball.radius < computerPaddle.x + computerPaddle.width &&
+                ball.y > computerPaddle.y &&
+                ball.y < computerPaddle.y + computerPaddle.height) {
+                
+                const hitPos = (ball.y - (computerPaddle.y + computerPaddle.height / 2)) / (computerPaddle.height / 2);
+                ball.speedX = -Math.abs(ball.speedX) * 1.05;
+                ball.speedY = hitPos * 7;
+                
+                // 增加电脑得分
+                computerScore++;
+                updateScore();
+            }
+            
+            // 球与上下边界的碰撞
+            if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+                ball.speedY = -ball.speedY;
+            }
+            
+            // 球与左右边界的碰撞（得分）
+            if (ball.x - ball.radius < 0) {
+                computerScore += 2; // 玩家失球，电脑多得一分
+                updateScore();
+                resetBall();
+            }
+            
+            if (ball.x + ball.radius > canvas.width) {
+                playerScore += 2; // 电脑失球，玩家多得一分
+                updateScore();
+                resetBall();
+            }
+        }
+        
+        function updateComputerPaddle() {
+            // 简单AI：电脑球拍跟随球移动
+            const computerPaddleCenter = computerPaddle.y + computerPaddle.height / 2;
+            
+            if (computerPaddleCenter < ball.y - 10) {
+                computerPaddle.y += computerPaddle.speed;
+            } else if (computerPaddleCenter > ball.y + 10) {
+                computerPaddle.y -= computerPaddle.speed;
+            }
+            
+            // 确保电脑球拍不超出画布
+            if (computerPaddle.y < 0) computerPaddle.y = 0;
+            if (computerPaddle.y + computerPaddle.height > canvas.height) {
+                computerPaddle.y = canvas.height - computerPaddle.height;
+            }
+        }
+        
+        function update() {
+            if (gamePaused) return;
+            
+            // 更新球的位置
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+            
+            // 检查碰撞
+            checkCollision();
+            
+            // 更新电脑球拍
+            updateComputerPaddle();
+            
+            // 检查游戏结束条件
+            if (playerScore >= 10 || computerScore >= 10) {
+                endGame();
+            }
+        }
+        
+        function draw() {
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制背景网格
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            
+            // 绘制中间虚线
+            ctx.beginPath();
+            ctx.setLineDash([5, 15]);
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 绘制球
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.closePath();
+            
+            // 绘制玩家球拍
+            ctx.fillStyle = playerPaddle.color;
+            ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+            
+            // 绘制电脑球拍
+            ctx.fillStyle = computerPaddle.color;
+            ctx.fillRect(computerPaddle.x, computerPaddle.y, computerPaddle.width, computerPaddle.height);
+            
+            // 绘制球拍阴影效果
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(playerPaddle.x + playerPaddle.width, playerPaddle.y, 5, playerPaddle.height);
+            ctx.fillRect(computerPaddle.x - 5, computerPaddle.y, 5, computerPaddle.height);
+        }
+        
+        function gameLoop() {
+            update();
+            draw();
+            
+            if (gameRunning && !gamePaused) {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function endGame() {
+            gameRunning = false;
+            gamePaused = false;
+            
+            finalScoreElement.textContent = playerScore >= 10 ? 
+                `恭喜！你赢了！最终比分: ${playerScore} - ${computerScore}` : 
+                `很遗憾，电脑赢了！最终比分: ${playerScore} - ${computerScore}`;
+            
+            gameOverElement.style.display = 'block';
+        }
+        
+        // 初始绘制
+        draw();
+    </script>
 </body>
 </html>
