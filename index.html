@@ -3,520 +3,471 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>乒乓球游戏</title>
+    <title>记忆翻牌游戏</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             min-height: 100vh;
-            color: white;
-            padding: 20px;
-        }
-        
-        .container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 800px;
-            width: 100%;
+            padding: 20px;
+            color: white;
         }
         
         header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
         
         h1 {
             font-size: 2.8rem;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
         }
         
-        .subtitle {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-        
-        .game-container {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            margin-bottom: 20px;
-        }
-        
-        canvas {
-            background-color: #111;
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            display: block;
-            width: 100%;
-        }
-        
-        .score-board {
+        .game-info {
             display: flex;
             justify-content: space-between;
-            width: 100%;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
+            width: 500px;
+            max-width: 90vw;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .info-item {
+            text-align: center;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .info-value {
+            font-size: 1.8rem;
             font-weight: bold;
         }
         
-        .player-score, .computer-score {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 20px;
-            border-radius: 8px;
-            min-width: 100px;
+        .game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            width: 500px;
+            max-width: 90vw;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            height: 120px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
             text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+            color: #fff;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            color: #333;
+            transform: rotateY(180deg);
         }
         
         .controls {
             display: flex;
             gap: 15px;
-            margin-top: 20px;
         }
         
         button {
-            background: #4CAF50;
+            padding: 12px 25px;
+            font-size: 1rem;
+            background: #ff6b6b;
             color: white;
             border: none;
-            padding: 12px 25px;
             border-radius: 50px;
-            font-size: 1rem;
-            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
         button:hover {
-            background: #45a049;
+            background: #ff5252;
             transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
         
         button:active {
             transform: translateY(0);
         }
         
-        #pauseBtn {
-            background: #ff9800;
-        }
-        
-        #pauseBtn:hover {
-            background: #e68900;
-        }
-        
-        #resetBtn {
-            background: #f44336;
-        }
-        
-        #resetBtn:hover {
-            background: #d32f2f;
-        }
-        
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 8px;
-            margin-top: 20px;
+        .win-message {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
         }
         
-        .instructions h2 {
-            margin-bottom: 10px;
-            font-size: 1.5rem;
+        .win-message.show {
+            opacity: 1;
+            pointer-events: all;
         }
         
-        .instructions p {
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-        
-        .game-over {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85);
-            padding: 30px;
-            border-radius: 10px;
+        .win-content {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            padding: 40px;
+            border-radius: 20px;
             text-align: center;
-            display: none;
-            z-index: 10;
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
         
-        .game-over h2 {
+        .win-content h2 {
             font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: #ffcc00;
-        }
-        
-        .game-over p {
-            font-size: 1.3rem;
             margin-bottom: 20px;
         }
         
+        .win-content p {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+        }
+        
         @media (max-width: 600px) {
+            .game-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .card {
+                height: 100px;
+            }
+            
             h1 {
-                font-size: 2rem;
-            }
-            
-            .score-board {
-                font-size: 1.2rem;
-            }
-            
-            .player-score, .computer-score {
-                min-width: 80px;
-                padding: 8px 15px;
-            }
-            
-            button {
-                padding: 10px 20px;
-                font-size: 0.9rem;
+                font-size: 2.2rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>乒乓球游戏</h1>
-            <p class="subtitle">挑战电脑对手，看看你能得多少分！</p>
-        </header>
-        
-        <div class="score-board">
-            <div class="player-score">玩家: 0</div>
-            <div class="computer-score">电脑: 0</div>
+    <header>
+        <h1>记忆翻牌游戏</h1>
+        <p>翻开卡片，找到所有匹配的图案对！</p>
+    </header>
+    
+    <div class="game-info">
+        <div class="info-item">
+            <div class="info-label">时间</div>
+            <div class="info-value" id="timer">0</div>
         </div>
-        
-        <div class="game-container">
-            <canvas id="gameCanvas" width="800" height="400"></canvas>
-            
-            <div class="game-over" id="gameOver">
-                <h2>游戏结束</h2>
-                <p id="finalScore">你的得分: 0</p>
-                <button id="restartBtn">再来一局</button>
-            </div>
+        <div class="info-item">
+            <div class="info-label">移动次数</div>
+            <div class="info-value" id="moves">0</div>
         </div>
-        
-        <div class="controls">
-            <button id="startBtn">开始游戏</button>
-            <button id="pauseBtn">暂停</button>
-            <button id="resetBtn">重置</button>
+        <div class="info-item">
+            <div class="info-label">剩余配对</div>
+            <div class="info-value" id="pairs-left">8</div>
         </div>
-        
-        <div class="instructions">
-            <h2>游戏说明</h2>
-            <p>使用鼠标或触摸屏移动球拍，阻止球碰到左侧边界</p>
-            <p>每成功反弹一次得1分，先得10分者获胜</p>
-            <p>球的速度会随着游戏进行逐渐加快</p>
+    </div>
+    
+    <div class="game-container" id="game-board"></div>
+    
+    <div class="controls">
+        <button id="restart-btn">重新开始</button>
+        <button id="hint-btn">提示</button>
+    </div>
+    
+    <div class="win-message" id="win-message">
+        <div class="win-content">
+            <h2>恭喜你赢了！</h2>
+            <p>你用了 <span id="final-time">0</span> 秒和 <span id="final-moves">0</span> 步完成了游戏！</p>
+            <button id="play-again-btn">再玩一次</button>
         </div>
     </div>
 
     <script>
-        // 获取Canvas和上下文
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // 游戏元素
-        const ball = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            radius: 10,
-            speedX: 5,
-            speedY: 5,
-            color: '#4CAF50'
-        };
-        
-        const playerPaddle = {
-            x: 20,
-            y: canvas.height / 2 - 50,
-            width: 10,
-            height: 100,
-            color: '#2196F3',
-            speed: 8
-        };
-        
-        const computerPaddle = {
-            x: canvas.width - 30,
-            y: canvas.height / 2 - 50,
-            width: 10,
-            height: 100,
-            color: '#FF5722',
-            speed: 5
-        };
-        
-        // 游戏状态
-        let playerScore = 0;
-        let computerScore = 0;
-        let gameRunning = false;
-        let gamePaused = false;
-        let animationId;
-        
-        // 获取DOM元素
-        const playerScoreElement = document.querySelector('.player-score');
-        const computerScoreElement = document.querySelector('.computer-score');
-        const startBtn = document.getElementById('startBtn');
-        const pauseBtn = document.getElementById('pauseBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const gameOverElement = document.getElementById('gameOver');
-        const finalScoreElement = document.getElementById('finalScore');
-        const restartBtn = document.getElementById('restartBtn');
-        
-        // 鼠标/触摸移动事件
-        canvas.addEventListener('mousemove', movePaddle);
-        canvas.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const mouseY = touch.clientY - rect.top;
-            movePaddle({clientY: mouseY});
+        document.addEventListener('DOMContentLoaded', () => {
+            // 游戏配置
+            const config = {
+                totalPairs: 8,
+                symbols: ['🍎', '🍌', '🍒', '🍇', '🍊', '🍓', '🍑', '🥝', '🍉', '🍋', '🥥', '🥭'],
+                gameBoard: document.getElementById('game-board'),
+                timerElement: document.getElementById('timer'),
+                movesElement: document.getElementById('moves'),
+                pairsLeftElement: document.getElementById('pairs-left'),
+                restartButton: document.getElementById('restart-btn'),
+                hintButton: document.getElementById('hint-btn'),
+                winMessage: document.getElementById('win-message'),
+                finalTime: document.getElementById('final-time'),
+                finalMoves: document.getElementById('final-moves'),
+                playAgainButton: document.getElementById('play-again-btn')
+            };
+            
+            // 游戏状态
+            let gameState = {
+                cards: [],
+                flippedCards: [],
+                matchedPairs: 0,
+                moves: 0,
+                timer: 0,
+                timerInterval: null,
+                canFlip: true,
+                isGameStarted: false
+            };
+            
+            // 初始化游戏
+            function initGame() {
+                // 重置游戏状态
+                gameState.cards = [];
+                gameState.flippedCards = [];
+                gameState.matchedPairs = 0;
+                gameState.moves = 0;
+                gameState.timer = 0;
+                gameState.canFlip = true;
+                gameState.isGameStarted = false;
+                
+                // 清除计时器
+                if (gameState.timerInterval) {
+                    clearInterval(gameState.timerInterval);
+                }
+                
+                // 更新UI
+                config.timerElement.textContent = '0';
+                config.movesElement.textContent = '0';
+                config.pairsLeftElement.textContent = config.totalPairs;
+                config.winMessage.classList.remove('show');
+                
+                // 创建卡片
+                createCards();
+                
+                // 渲染卡片
+                renderCards();
+            }
+            
+            // 创建卡片
+            function createCards() {
+                // 选择符号
+                const selectedSymbols = config.symbols.slice(0, config.totalPairs);
+                
+                // 创建卡片对
+                const cardPairs = [...selectedSymbols, ...selectedSymbols];
+                
+                // 洗牌
+                shuffleArray(cardPairs);
+                
+                // 创建卡片对象
+                gameState.cards = cardPairs.map((symbol, index) => ({
+                    id: index,
+                    symbol: symbol,
+                    isFlipped: false,
+                    isMatched: false
+                }));
+            }
+            
+            // 渲染卡片
+            function renderCards() {
+                config.gameBoard.innerHTML = '';
+                
+                gameState.cards.forEach(card => {
+                    const cardElement = document.createElement('div');
+                    cardElement.className = 'card';
+                    if (card.isFlipped || card.isMatched) {
+                        cardElement.classList.add('flipped');
+                    }
+                    
+                    cardElement.innerHTML = `
+                        <div class="card-inner">
+                            <div class="card-front">?</div>
+                            <div class="card-back">${card.symbol}</div>
+                        </div>
+                    `;
+                    
+                    cardElement.addEventListener('click', () => flipCard(card));
+                    config.gameBoard.appendChild(cardElement);
+                });
+            }
+            
+            // 翻转卡片
+            function flipCard(card) {
+                // 如果游戏未开始，开始计时
+                if (!gameState.isGameStarted) {
+                    startTimer();
+                    gameState.isGameStarted = true;
+                }
+                
+                // 检查是否可以翻转
+                if (!gameState.canFlip || card.isFlipped || card.isMatched) {
+                    return;
+                }
+                
+                // 翻转卡片
+                card.isFlipped = true;
+                gameState.flippedCards.push(card);
+                
+                // 更新UI
+                renderCards();
+                
+                // 检查是否翻开了两张卡片
+                if (gameState.flippedCards.length === 2) {
+                    gameState.canFlip = false;
+                    gameState.moves++;
+                    config.movesElement.textContent = gameState.moves;
+                    
+                    // 检查是否匹配
+                    checkForMatch();
+                }
+            }
+            
+            // 检查匹配
+            function checkForMatch() {
+                const [card1, card2] = gameState.flippedCards;
+                
+                if (card1.symbol === card2.symbol) {
+                    // 匹配成功
+                    card1.isMatched = true;
+                    card2.isMatched = true;
+                    gameState.matchedPairs++;
+                    
+                    // 更新剩余配对
+                    config.pairsLeftElement.textContent = config.totalPairs - gameState.matchedPairs;
+                    
+                    // 清空已翻转卡片
+                    gameState.flippedCards = [];
+                    gameState.canFlip = true;
+                    
+                    // 检查游戏是否结束
+                    checkGameEnd();
+                } else {
+                    // 不匹配，翻转回去
+                    setTimeout(() => {
+                        card1.isFlipped = false;
+                        card2.isFlipped = false;
+                        gameState.flippedCards = [];
+                        gameState.canFlip = true;
+                        renderCards();
+                    }, 1000);
+                }
+            }
+            
+            // 检查游戏是否结束
+            function checkGameEnd() {
+                if (gameState.matchedPairs === config.totalPairs) {
+                    // 游戏结束
+                    clearInterval(gameState.timerInterval);
+                    
+                    // 显示胜利消息
+                    config.finalTime.textContent = gameState.timer;
+                    config.finalMoves.textContent = gameState.moves;
+                    
+                    setTimeout(() => {
+                        config.winMessage.classList.add('show');
+                    }, 500);
+                }
+            }
+            
+            // 开始计时
+            function startTimer() {
+                gameState.timerInterval = setInterval(() => {
+                    gameState.timer++;
+                    config.timerElement.textContent = gameState.timer;
+                }, 1000);
+            }
+            
+            // 洗牌函数
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+            
+            // 提示功能
+            function showHint() {
+                if (!gameState.isGameStarted || gameState.flippedCards.length > 0) {
+                    return;
+                }
+                
+                // 找到所有未匹配的卡片
+                const unmatchedCards = gameState.cards.filter(card => !card.isMatched && !card.isFlipped);
+                
+                if (unmatchedCards.length < 2) return;
+                
+                // 随机选择一对未匹配的卡片
+                const firstCard = unmatchedCards[Math.floor(Math.random() * unmatchedCards.length)];
+                const secondCard = unmatchedCards.find(card => 
+                    card.id !== firstCard.id && card.symbol === firstCard.symbol
+                );
+                
+                if (!secondCard) return;
+                
+                // 短暂显示这对卡片
+                firstCard.isFlipped = true;
+                secondCard.isFlipped = true;
+                renderCards();
+                
+                setTimeout(() => {
+                    firstCard.isFlipped = false;
+                    secondCard.isFlipped = false;
+                    renderCards();
+                }, 1000);
+            }
+            
+            // 事件监听
+            config.restartButton.addEventListener('click', initGame);
+            config.hintButton.addEventListener('click', showHint);
+            config.playAgainButton.addEventListener('click', initGame);
+            
+            // 初始化游戏
+            initGame();
         });
-        
-        function movePaddle(e) {
-            if (!gameRunning || gamePaused) return;
-            
-            const rect = canvas.getBoundingClientRect();
-            const mouseY = e.clientY - rect.top;
-            
-            // 更新玩家球拍位置，确保不超出画布
-            playerPaddle.y = mouseY - playerPaddle.height / 2;
-            if (playerPaddle.y < 0) playerPaddle.y = 0;
-            if (playerPaddle.y + playerPaddle.height > canvas.height) {
-                playerPaddle.y = canvas.height - playerPaddle.height;
-            }
-        }
-        
-        // 按钮事件
-        startBtn.addEventListener('click', function() {
-            if (!gameRunning) {
-                startGame();
-            }
-        });
-        
-        pauseBtn.addEventListener('click', function() {
-            if (gameRunning) {
-                togglePause();
-            }
-        });
-        
-        resetBtn.addEventListener('click', resetGame);
-        restartBtn.addEventListener('click', resetGame);
-        
-        // 游戏函数
-        function startGame() {
-            gameRunning = true;
-            gamePaused = false;
-            startBtn.textContent = "重新开始";
-            resetBall();
-            gameLoop();
-        }
-        
-        function togglePause() {
-            gamePaused = !gamePaused;
-            pauseBtn.textContent = gamePaused ? "继续" : "暂停";
-            
-            if (!gamePaused) {
-                gameLoop();
-            }
-        }
-        
-        function resetGame() {
-            gameRunning = false;
-            gamePaused = false;
-            playerScore = 0;
-            computerScore = 0;
-            updateScore();
-            startBtn.textContent = "开始游戏";
-            pauseBtn.textContent = "暂停";
-            gameOverElement.style.display = 'none';
-            resetBall();
-            
-            // 重置球拍位置
-            playerPaddle.y = canvas.height / 2 - playerPaddle.height / 2;
-            computerPaddle.y = canvas.height / 2 - computerPaddle.height / 2;
-            
-            // 清除之前的动画帧
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
-            
-            // 重绘画布
-            draw();
-        }
-        
-        function resetBall() {
-            ball.x = canvas.width / 2;
-            ball.y = canvas.height / 2;
-            
-            // 随机决定球的初始方向
-            ball.speedX = (Math.random() > 0.5 ? 1 : -1) * 5;
-            ball.speedY = (Math.random() * 2 - 1) * 5;
-        }
-        
-        function updateScore() {
-            playerScoreElement.textContent = `玩家: ${playerScore}`;
-            computerScoreElement.textContent = `电脑: ${computerScore}`;
-        }
-        
-        function checkCollision() {
-            // 球与玩家球拍的碰撞
-            if (ball.x - ball.radius < playerPaddle.x + playerPaddle.width &&
-                ball.x + ball.radius > playerPaddle.x &&
-                ball.y > playerPaddle.y &&
-                ball.y < playerPaddle.y + playerPaddle.height) {
-                
-                // 根据击中球拍的位置调整反弹角度
-                const hitPos = (ball.y - (playerPaddle.y + playerPaddle.height / 2)) / (playerPaddle.height / 2);
-                ball.speedX = Math.abs(ball.speedX) * 1.05; // 每次反弹略微加速
-                ball.speedY = hitPos * 7;
-                
-                // 增加玩家得分
-                playerScore++;
-                updateScore();
-            }
-            
-            // 球与电脑球拍的碰撞
-            if (ball.x + ball.radius > computerPaddle.x &&
-                ball.x - ball.radius < computerPaddle.x + computerPaddle.width &&
-                ball.y > computerPaddle.y &&
-                ball.y < computerPaddle.y + computerPaddle.height) {
-                
-                const hitPos = (ball.y - (computerPaddle.y + computerPaddle.height / 2)) / (computerPaddle.height / 2);
-                ball.speedX = -Math.abs(ball.speedX) * 1.05;
-                ball.speedY = hitPos * 7;
-                
-                // 增加电脑得分
-                computerScore++;
-                updateScore();
-            }
-            
-            // 球与上下边界的碰撞
-            if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
-                ball.speedY = -ball.speedY;
-            }
-            
-            // 球与左右边界的碰撞（得分）
-            if (ball.x - ball.radius < 0) {
-                computerScore += 2; // 玩家失球，电脑多得一分
-                updateScore();
-                resetBall();
-            }
-            
-            if (ball.x + ball.radius > canvas.width) {
-                playerScore += 2; // 电脑失球，玩家多得一分
-                updateScore();
-                resetBall();
-            }
-        }
-        
-        function updateComputerPaddle() {
-            // 简单AI：电脑球拍跟随球移动
-            const computerPaddleCenter = computerPaddle.y + computerPaddle.height / 2;
-            
-            if (computerPaddleCenter < ball.y - 10) {
-                computerPaddle.y += computerPaddle.speed;
-            } else if (computerPaddleCenter > ball.y + 10) {
-                computerPaddle.y -= computerPaddle.speed;
-            }
-            
-            // 确保电脑球拍不超出画布
-            if (computerPaddle.y < 0) computerPaddle.y = 0;
-            if (computerPaddle.y + computerPaddle.height > canvas.height) {
-                computerPaddle.y = canvas.height - computerPaddle.height;
-            }
-        }
-        
-        function update() {
-            if (gamePaused) return;
-            
-            // 更新球的位置
-            ball.x += ball.speedX;
-            ball.y += ball.speedY;
-            
-            // 检查碰撞
-            checkCollision();
-            
-            // 更新电脑球拍
-            updateComputerPaddle();
-            
-            // 检查游戏结束条件
-            if (playerScore >= 10 || computerScore >= 10) {
-                endGame();
-            }
-        }
-        
-        function draw() {
-            // 清除画布
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 绘制背景网格
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 1;
-            
-            // 绘制中间虚线
-            ctx.beginPath();
-            ctx.setLineDash([5, 15]);
-            ctx.moveTo(canvas.width / 2, 0);
-            ctx.lineTo(canvas.width / 2, canvas.height);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // 绘制球
-            ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-            ctx.fillStyle = ball.color;
-            ctx.fill();
-            ctx.closePath();
-            
-            // 绘制玩家球拍
-            ctx.fillStyle = playerPaddle.color;
-            ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
-            
-            // 绘制电脑球拍
-            ctx.fillStyle = computerPaddle.color;
-            ctx.fillRect(computerPaddle.x, computerPaddle.y, computerPaddle.width, computerPaddle.height);
-            
-            // 绘制球拍阴影效果
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-            ctx.fillRect(playerPaddle.x + playerPaddle.width, playerPaddle.y, 5, playerPaddle.height);
-            ctx.fillRect(computerPaddle.x - 5, computerPaddle.y, 5, computerPaddle.height);
-        }
-        
-        function gameLoop() {
-            update();
-            draw();
-            
-            if (gameRunning && !gamePaused) {
-                animationId = requestAnimationFrame(gameLoop);
-            }
-        }
-        
-        function endGame() {
-            gameRunning = false;
-            gamePaused = false;
-            
-            finalScoreElement.textContent = playerScore >= 10 ? 
-                `恭喜！你赢了！最终比分: ${playerScore} - ${computerScore}` : 
-                `很遗憾，电脑赢了！最终比分: ${playerScore} - ${computerScore}`;
-            
-            gameOverElement.style.display = 'block';
-        }
-        
-        // 初始绘制
-        draw();
     </script>
 </body>
 </html>
