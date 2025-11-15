@@ -3,470 +3,1313 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>记忆翻牌游戏</title>
+    <title>星际保卫者 - 太空射击游戏</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Arial Rounded MT Bold', 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
             min-height: 100vh;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-            color: white;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .game-info {
-            display: flex;
-            justify-content: space-between;
-            width: 500px;
-            max-width: 90vw;
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .info-item {
-            text-align: center;
-        }
-        
-        .info-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-        
-        .info-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-        
-        .game-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            width: 500px;
-            max-width: 90vw;
-            margin-bottom: 30px;
-        }
-        
-        .card {
-            height: 120px;
-            perspective: 1000px;
-            cursor: pointer;
-        }
-        
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            text-align: center;
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        .card.flipped .card-inner {
-            transform: rotateY(180deg);
-        }
-        
-        .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            -webkit-backface-visibility: hidden;
-            backface-visibility: hidden;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 2.5rem;
         }
         
-        .card-front {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-            color: #fff;
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 3px solid #4cc9f0;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(76, 201, 240, 0.5);
         }
         
-        .card-back {
-            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
-            color: #333;
-            transform: rotateY(180deg);
+        #game-canvas {
+            background: #000;
         }
         
-        .controls {
-            display: flex;
-            gap: 15px;
-        }
-        
-        button {
-            padding: 12px 25px;
-            font-size: 1rem;
-            background: #ff6b6b;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        
-        button:hover {
-            background: #ff5252;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        .win-message {
-            position: fixed;
+        #ui-overlay {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
+            pointer-events: none;
+        }
+        
+        .ui-panel {
+            background: rgba(0, 20, 40, 0.7);
+            border: 2px solid #4cc9f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        #stats-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 200px;
+        }
+        
+        #controls-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200px;
+        }
+        
+        #weapon-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+        }
+        
+        #game-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
             background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px solid #f72585;
+            display: none;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px rgba(76, 201, 240, 0.7);
+        }
+        
+        h2 {
+            color: #f72585;
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        
+        .bar-container {
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        
+        #health-bar {
+            background: linear-gradient(90deg, #f72585, #b5179e);
+        }
+        
+        #shield-bar {
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+        }
+        
+        #energy-bar {
+            background: linear-gradient(90deg, #ffbe0b, #fb5607);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4361ee, #3a0ca3);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            width: 100%;
+            pointer-events: auto;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #4cc9f0, #4361ee);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 201, 240, 0.4);
+        }
+        
+        .weapon {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .weapon.active {
+            background: rgba(76, 201, 240, 0.3);
+            border: 1px solid #4cc9f0;
+        }
+        
+        .weapon-icon {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+            background: #4cc9f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upgrade-btn {
+            background: #f72585;
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            margin-left: auto;
+            cursor: pointer;
+        }
+        
+        .enemy-preview {
+            width: 30px;
+            height: 30px;
+            background: #fb5607;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        
+        .enemy-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 10, 20, 0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s;
+            z-index: 10;
         }
         
-        .win-message.show {
-            opacity: 1;
-            pointer-events: all;
-        }
-        
-        .win-content {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            max-width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-        
-        .win-content h2 {
-            font-size: 2.5rem;
+        .logo {
+            font-size: 4rem;
+            color: #4cc9f0;
             margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(76, 201, 240, 0.7);
         }
         
-        .win-content p {
-            font-size: 1.3rem;
-            margin-bottom: 25px;
+        .subtitle {
+            font-size: 1.5rem;
+            color: #f72585;
+            margin-bottom: 40px;
         }
         
-        @media (max-width: 600px) {
-            .game-container {
-                grid-template-columns: repeat(3, 1fr);
+        #instructions {
+            max-width: 600px;
+            background: rgba(0, 20, 40, 0.7);
+            border: 2px solid #4cc9f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .instruction-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .key {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin: 0 10px;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        #high-scores {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 250px;
+            background: rgba(0, 20, 40, 0.7);
+            border: 2px solid #4cc9f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px;
+            display: none;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 850px) {
+            #game-container {
+                width: 95vw;
+                height: 70vh;
             }
             
-            .card {
-                height: 100px;
+            .ui-panel {
+                padding: 10px;
+                margin: 10px;
             }
             
-            h1 {
-                font-size: 2.2rem;
+            #stats-panel, #controls-panel, #weapon-panel {
+                width: 180px;
             }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>记忆翻牌游戏</h1>
-        <p>翻开卡片，找到所有匹配的图案对！</p>
-    </header>
+    <h1>星际保卫者</h1>
     
-    <div class="game-info">
-        <div class="info-item">
-            <div class="info-label">时间</div>
-            <div class="info-value" id="timer">0</div>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+        
+        <div id="ui-overlay">
+            <div id="stats-panel" class="ui-panel">
+                <h2>状态</h2>
+                <div class="stat">
+                    <span>等级:</span>
+                    <span id="level">1</span>
+                </div>
+                <div class="stat">
+                    <span>分数:</span>
+                    <span id="score">0</span>
+                </div>
+                <div class="stat">
+                    <span>击杀:</span>
+                    <span id="kills">0</span>
+                </div>
+                
+                <div>护盾</div>
+                <div class="bar-container">
+                    <div id="shield-bar" class="bar" style="width: 100%"></div>
+                </div>
+                
+                <div>生命值</div>
+                <div class="bar-container">
+                    <div id="health-bar" class="bar" style="width: 100%"></div>
+                </div>
+                
+                <div>能量</div>
+                <div class="bar-container">
+                    <div id="energy-bar" class="bar" style="width: 100%"></div>
+                </div>
+            </div>
+            
+            <div id="controls-panel" class="ui-panel">
+                <h2>控制</h2>
+                <div class="instruction-item">
+                    <span>移动:</span>
+                    <div class="key">WASD</div>
+                </div>
+                <div class="instruction-item">
+                    <span>射击:</span>
+                    <div class="key">空格</div>
+                </div>
+                <div class="instruction-item">
+                    <span>切换武器:</span>
+                    <div class="key">Q/E</div>
+                </div>
+                <button id="pause-btn" class="btn">暂停游戏</button>
+            </div>
+            
+            <div id="weapon-panel" class="ui-panel">
+                <h2>武器系统</h2>
+                <div id="weapon-list">
+                    <!-- 武器将通过JavaScript动态添加 -->
+                </div>
+                <button id="special-attack-btn" class="btn">特殊攻击</button>
+            </div>
+            
+            <div id="game-message">
+                <h2 id="message-title">游戏结束</h2>
+                <p id="message-text">您的飞船已被摧毁！</p>
+                <button id="restart-btn" class="btn">重新开始</button>
+            </div>
         </div>
-        <div class="info-item">
-            <div class="info-label">移动次数</div>
-            <div class="info-value" id="moves">0</div>
+        
+        <div id="start-screen">
+            <div class="logo">星际保卫者</div>
+            <div class="subtitle">保卫银河系，抵御外星入侵！</div>
+            
+            <div id="instructions">
+                <h2>游戏说明</h2>
+                <p>使用WASD键移动飞船，空格键射击，Q/E键切换武器。</p>
+                <p>击败敌人获得分数和升级，每关最后会出现强大的Boss。</p>
+                <p>收集能量包恢复护盾和能量，避开敌人的攻击。</p>
+                
+                <h3>敌人类型</h3>
+                <div class="enemy-info">
+                    <div class="enemy-preview" style="background: #fb5607;"></div>
+                    <span>侦察机 - 移动快速，生命值低</span>
+                </div>
+                <div class="enemy-info">
+                    <div class="enemy-preview" style="background: #ff006e;"></div>
+                    <span>战斗机 - 中等生命值，会射击</span>
+                </div>
+                <div class="enemy-info">
+                    <div class="enemy-preview" style="background: #8338ec;"></div>
+                    <span>重型战舰 - 高生命值，火力强大</span>
+                </div>
+            </div>
+            
+            <button id="start-btn" class="btn">开始游戏</button>
+            <button id="show-scores-btn" class="btn">查看高分榜</button>
         </div>
-        <div class="info-item">
-            <div class="info-label">剩余配对</div>
-            <div class="info-value" id="pairs-left">8</div>
-        </div>
-    </div>
-    
-    <div class="game-container" id="game-board"></div>
-    
-    <div class="controls">
-        <button id="restart-btn">重新开始</button>
-        <button id="hint-btn">提示</button>
-    </div>
-    
-    <div class="win-message" id="win-message">
-        <div class="win-content">
-            <h2>恭喜你赢了！</h2>
-            <p>你用了 <span id="final-time">0</span> 秒和 <span id="final-moves">0</span> 步完成了游戏！</p>
-            <button id="play-again-btn">再玩一次</button>
+        
+        <div id="high-scores">
+            <h2>高分榜</h2>
+            <div id="scores-list">
+                <!-- 高分将通过JavaScript动态添加 -->
+            </div>
+            <button id="close-scores-btn" class="btn">关闭</button>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // 游戏配置
-            const config = {
-                totalPairs: 8,
-                symbols: ['🍎', '🍌', '🍒', '🍇', '🍊', '🍓', '🍑', '🥝', '🍉', '🍋', '🥥', '🥭'],
-                gameBoard: document.getElementById('game-board'),
-                timerElement: document.getElementById('timer'),
-                movesElement: document.getElementById('moves'),
-                pairsLeftElement: document.getElementById('pairs-left'),
-                restartButton: document.getElementById('restart-btn'),
-                hintButton: document.getElementById('hint-btn'),
-                winMessage: document.getElementById('win-message'),
-                finalTime: document.getElementById('final-time'),
-                finalMoves: document.getElementById('final-moves'),
-                playAgainButton: document.getElementById('play-again-btn')
-            };
-            
-            // 游戏状态
-            let gameState = {
-                cards: [],
-                flippedCards: [],
-                matchedPairs: 0,
-                moves: 0,
-                timer: 0,
-                timerInterval: null,
-                canFlip: true,
-                isGameStarted: false
-            };
-            
-            // 初始化游戏
-            function initGame() {
-                // 重置游戏状态
-                gameState.cards = [];
-                gameState.flippedCards = [];
-                gameState.matchedPairs = 0;
-                gameState.moves = 0;
-                gameState.timer = 0;
-                gameState.canFlip = true;
-                gameState.isGameStarted = false;
+        // 游戏主类
+        class SpaceShooterGame {
+            constructor() {
+                this.canvas = document.getElementById('game-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
                 
-                // 清除计时器
-                if (gameState.timerInterval) {
-                    clearInterval(gameState.timerInterval);
-                }
+                // 游戏状态
+                this.gameState = 'menu'; // menu, playing, paused, gameover
+                this.level = 1;
+                this.score = 0;
+                this.kills = 0;
                 
-                // 更新UI
-                config.timerElement.textContent = '0';
-                config.movesElement.textContent = '0';
-                config.pairsLeftElement.textContent = config.totalPairs;
-                config.winMessage.classList.remove('show');
+                // 玩家属性
+                this.player = {
+                    x: this.width / 2,
+                    y: this.height - 100,
+                    width: 50,
+                    height: 70,
+                    speed: 5,
+                    health: 100,
+                    maxHealth: 100,
+                    shield: 100,
+                    maxShield: 100,
+                    energy: 100,
+                    maxEnergy: 100,
+                    weapons: ['laser', 'plasma', 'missile'],
+                    currentWeapon: 0,
+                    specialAttack: false
+                };
                 
-                // 创建卡片
-                createCards();
+                // 游戏对象数组
+                this.bullets = [];
+                this.enemies = [];
+                this.powerUps = [];
+                this.particles = [];
                 
-                // 渲染卡片
-                renderCards();
+                // 输入状态
+                this.keys = {};
+                
+                // 游戏循环变量
+                this.lastTime = 0;
+                this.deltaTime = 0;
+                
+                // 敌人生成计时器
+                this.enemySpawnTimer = 0;
+                
+                // 初始化
+                this.init();
             }
             
-            // 创建卡片
-            function createCards() {
-                // 选择符号
-                const selectedSymbols = config.symbols.slice(0, config.totalPairs);
+            init() {
+                // 设置事件监听器
+                this.setupEventListeners();
                 
-                // 创建卡片对
-                const cardPairs = [...selectedSymbols, ...selectedSymbols];
+                // 初始化武器面板
+                this.initWeaponPanel();
                 
-                // 洗牌
-                shuffleArray(cardPairs);
-                
-                // 创建卡片对象
-                gameState.cards = cardPairs.map((symbol, index) => ({
-                    id: index,
-                    symbol: symbol,
-                    isFlipped: false,
-                    isMatched: false
-                }));
+                // 开始游戏循环
+                this.gameLoop();
             }
             
-            // 渲染卡片
-            function renderCards() {
-                config.gameBoard.innerHTML = '';
-                
-                gameState.cards.forEach(card => {
-                    const cardElement = document.createElement('div');
-                    cardElement.className = 'card';
-                    if (card.isFlipped || card.isMatched) {
-                        cardElement.classList.add('flipped');
+            setupEventListeners() {
+                // 键盘事件
+                document.addEventListener('keydown', (e) => {
+                    this.keys[e.key] = true;
+                    
+                    // 空格键射击
+                    if (e.key === ' ' && this.gameState === 'playing') {
+                        this.shoot();
                     }
                     
-                    cardElement.innerHTML = `
-                        <div class="card-inner">
-                            <div class="card-front">?</div>
-                            <div class="card-back">${card.symbol}</div>
-                        </div>
-                    `;
+                    // Q/E切换武器
+                    if (e.key === 'q' && this.gameState === 'playing') {
+                        this.previousWeapon();
+                    }
+                    if (e.key === 'e' && this.gameState === 'playing') {
+                        this.nextWeapon();
+                    }
                     
-                    cardElement.addEventListener('click', () => flipCard(card));
-                    config.gameBoard.appendChild(cardElement);
+                    // P键暂停
+                    if (e.key === 'p') {
+                        this.togglePause();
+                    }
+                });
+                
+                document.addEventListener('keyup', (e) => {
+                    this.keys[e.key] = false;
+                });
+                
+                // 按钮事件
+                document.getElementById('start-btn').addEventListener('click', () => {
+                    this.startGame();
+                });
+                
+                document.getElementById('pause-btn').addEventListener('click', () => {
+                    this.togglePause();
+                });
+                
+                document.getElementById('restart-btn').addEventListener('click', () => {
+                    this.restartGame();
+                });
+                
+                document.getElementById('special-attack-btn').addEventListener('click', () => {
+                    if (this.gameState === 'playing' && this.player.energy >= 50) {
+                        this.specialAttack();
+                    }
+                });
+                
+                document.getElementById('show-scores-btn').addEventListener('click', () => {
+                    document.getElementById('high-scores').style.display = 'block';
+                    this.showHighScores();
+                });
+                
+                document.getElementById('close-scores-btn').addEventListener('click', () => {
+                    document.getElementById('high-scores').style.display = 'none';
                 });
             }
             
-            // 翻转卡片
-            function flipCard(card) {
-                // 如果游戏未开始，开始计时
-                if (!gameState.isGameStarted) {
-                    startTimer();
-                    gameState.isGameStarted = true;
+            startGame() {
+                this.gameState = 'playing';
+                document.getElementById('start-screen').style.display = 'none';
+                this.resetGame();
+            }
+            
+            restartGame() {
+                this.resetGame();
+                this.gameState = 'playing';
+                document.getElementById('game-message').style.display = 'none';
+            }
+            
+            resetGame() {
+                this.level = 1;
+                this.score = 0;
+                this.kills = 0;
+                
+                this.player.x = this.width / 2;
+                this.player.y = this.height - 100;
+                this.player.health = this.player.maxHealth;
+                this.player.shield = this.player.maxShield;
+                this.player.energy = this.player.maxEnergy;
+                this.player.currentWeapon = 0;
+                
+                this.bullets = [];
+                this.enemies = [];
+                this.powerUps = [];
+                this.particles = [];
+                
+                this.updateUI();
+            }
+            
+            togglePause() {
+                if (this.gameState === 'playing') {
+                    this.gameState = 'paused';
+                    document.getElementById('pause-btn').textContent = '继续游戏';
+                } else if (this.gameState === 'paused') {
+                    this.gameState = 'playing';
+                    document.getElementById('pause-btn').textContent = '暂停游戏';
+                }
+            }
+            
+            gameLoop(currentTime = 0) {
+                this.deltaTime = (currentTime - this.lastTime) / 1000;
+                this.lastTime = currentTime;
+                
+                // 清除画布
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                // 绘制星空背景
+                this.drawBackground();
+                
+                if (this.gameState === 'playing') {
+                    // 更新游戏状态
+                    this.update();
                 }
                 
-                // 检查是否可以翻转
-                if (!gameState.canFlip || card.isFlipped || card.isMatched) {
-                    return;
-                }
+                // 绘制游戏对象
+                this.draw();
                 
-                // 翻转卡片
-                card.isFlipped = true;
-                gameState.flippedCards.push(card);
+                // 继续游戏循环
+                requestAnimationFrame((time) => this.gameLoop(time));
+            }
+            
+            update() {
+                // 移动玩家
+                this.movePlayer();
+                
+                // 生成敌人
+                this.spawnEnemies();
+                
+                // 更新子弹
+                this.updateBullets();
+                
+                // 更新敌人
+                this.updateEnemies();
+                
+                // 更新能量包
+                this.updatePowerUps();
+                
+                // 更新粒子效果
+                this.updateParticles();
+                
+                // 检测碰撞
+                this.checkCollisions();
                 
                 // 更新UI
-                renderCards();
+                this.updateUI();
                 
-                // 检查是否翻开了两张卡片
-                if (gameState.flippedCards.length === 2) {
-                    gameState.canFlip = false;
-                    gameState.moves++;
-                    config.movesElement.textContent = gameState.moves;
-                    
-                    // 检查是否匹配
-                    checkForMatch();
+                // 检查游戏结束条件
+                this.checkGameOver();
+            }
+            
+            movePlayer() {
+                if (this.keys['w'] || this.keys['ArrowUp']) {
+                    this.player.y -= this.player.speed;
+                }
+                if (this.keys['s'] || this.keys['ArrowDown']) {
+                    this.player.y += this.player.speed;
+                }
+                if (this.keys['a'] || this.keys['ArrowLeft']) {
+                    this.player.x -= this.player.speed;
+                }
+                if (this.keys['d'] || this.keys['ArrowRight']) {
+                    this.player.x += this.player.speed;
+                }
+                
+                // 限制玩家在屏幕内
+                this.player.x = Math.max(this.player.width / 2, Math.min(this.width - this.player.width / 2, this.player.x));
+                this.player.y = Math.max(this.player.height / 2, Math.min(this.height - this.player.height / 2, this.player.y));
+            }
+            
+            shoot() {
+                const weapon = this.player.weapons[this.player.currentWeapon];
+                let bulletConfig;
+                
+                switch(weapon) {
+                    case 'laser':
+                        bulletConfig = {
+                            x: this.player.x,
+                            y: this.player.y - 30,
+                            width: 3,
+                            height: 15,
+                            speed: 10,
+                            damage: 10,
+                            color: '#4cc9f0'
+                        };
+                        this.bullets.push(bulletConfig);
+                        break;
+                    case 'plasma':
+                        bulletConfig = {
+                            x: this.player.x - 10,
+                            y: this.player.y - 30,
+                            width: 8,
+                            height: 8,
+                            speed: 8,
+                            damage: 20,
+                            color: '#f72585'
+                        };
+                        this.bullets.push(bulletConfig);
+                        
+                        bulletConfig = {
+                            x: this.player.x + 10,
+                            y: this.player.y - 30,
+                            width: 8,
+                            height: 8,
+                            speed: 8,
+                            damage: 20,
+                            color: '#f72585'
+                        };
+                        this.bullets.push(bulletConfig);
+                        break;
+                    case 'missile':
+                        if (this.player.energy >= 5) {
+                            bulletConfig = {
+                                x: this.player.x,
+                                y: this.player.y - 30,
+                                width: 10,
+                                height: 20,
+                                speed: 7,
+                                damage: 30,
+                                color: '#ffbe0b',
+                                homing: true
+                            };
+                            this.bullets.push(bulletConfig);
+                            this.player.energy -= 5;
+                        }
+                        break;
                 }
             }
             
-            // 检查匹配
-            function checkForMatch() {
-                const [card1, card2] = gameState.flippedCards;
-                
-                if (card1.symbol === card2.symbol) {
-                    // 匹配成功
-                    card1.isMatched = true;
-                    card2.isMatched = true;
-                    gameState.matchedPairs++;
+            specialAttack() {
+                if (this.player.energy >= 50) {
+                    for (let i = 0; i < 10; i++) {
+                        const angle = (i / 10) * Math.PI * 2;
+                        this.bullets.push({
+                            x: this.player.x,
+                            y: this.player.y,
+                            width: 5,
+                            height: 5,
+                            speed: 8,
+                            damage: 15,
+                            color: '#ff006e',
+                            vx: Math.sin(angle) * 8,
+                            vy: -Math.cos(angle) * 8
+                        });
+                    }
+                    this.player.energy -= 50;
                     
-                    // 更新剩余配对
-                    config.pairsLeftElement.textContent = config.totalPairs - gameState.matchedPairs;
-                    
-                    // 清空已翻转卡片
-                    gameState.flippedCards = [];
-                    gameState.canFlip = true;
-                    
-                    // 检查游戏是否结束
-                    checkGameEnd();
-                } else {
-                    // 不匹配，翻转回去
-                    setTimeout(() => {
-                        card1.isFlipped = false;
-                        card2.isFlipped = false;
-                        gameState.flippedCards = [];
-                        gameState.canFlip = true;
-                        renderCards();
-                    }, 1000);
+                    // 添加粒子效果
+                    for (let i = 0; i < 50; i++) {
+                        this.particles.push({
+                            x: this.player.x,
+                            y: this.player.y,
+                            size: Math.random() * 5 + 2,
+                            speedX: Math.random() * 6 - 3,
+                            speedY: Math.random() * 6 - 3,
+                            color: '#ff006e',
+                            life: 1.0
+                        });
+                    }
                 }
             }
             
-            // 检查游戏是否结束
-            function checkGameEnd() {
-                if (gameState.matchedPairs === config.totalPairs) {
-                    // 游戏结束
-                    clearInterval(gameState.timerInterval);
+            previousWeapon() {
+                this.player.currentWeapon--;
+                if (this.player.currentWeapon < 0) {
+                    this.player.currentWeapon = this.player.weapons.length - 1;
+                }
+                this.updateWeaponPanel();
+            }
+            
+            nextWeapon() {
+                this.player.currentWeapon++;
+                if (this.player.currentWeapon >= this.player.weapons.length) {
+                    this.player.currentWeapon = 0;
+                }
+                this.updateWeaponPanel();
+            }
+            
+            spawnEnemies() {
+                this.enemySpawnTimer += this.deltaTime;
+                
+                if (this.enemySpawnTimer > 1.0) { // 每秒生成敌人
+                    this.enemySpawnTimer = 0;
                     
-                    // 显示胜利消息
-                    config.finalTime.textContent = gameState.timer;
-                    config.finalMoves.textContent = gameState.moves;
+                    const enemyType = Math.floor(Math.random() * 3);
+                    let enemy;
                     
-                    setTimeout(() => {
-                        config.winMessage.classList.add('show');
-                    }, 500);
+                    switch(enemyType) {
+                        case 0: // 侦察机
+                            enemy = {
+                                x: Math.random() * (this.width - 50) + 25,
+                                y: -50,
+                                width: 40,
+                                height: 40,
+                                speed: 3,
+                                health: 20,
+                                maxHealth: 20,
+                                color: '#fb5607',
+                                points: 10
+                            };
+                            break;
+                        case 1: // 战斗机
+                            enemy = {
+                                x: Math.random() * (this.width - 50) + 25,
+                                y: -50,
+                                width: 50,
+                                height: 50,
+                                speed: 2,
+                                health: 40,
+                                maxHealth: 40,
+                                color: '#ff006e',
+                                points: 20,
+                                shootTimer: 0
+                            };
+                            break;
+                        case 2: // 重型战舰
+                            enemy = {
+                                x: Math.random() * (this.width - 80) + 40,
+                                y: -80,
+                                width: 70,
+                                height: 70,
+                                speed: 1,
+                                health: 100,
+                                maxHealth: 100,
+                                color: '#8338ec',
+                                points: 50,
+                                shootTimer: 0
+                            };
+                            break;
+                    }
+                    
+                    this.enemies.push(enemy);
                 }
             }
             
-            // 开始计时
-            function startTimer() {
-                gameState.timerInterval = setInterval(() => {
-                    gameState.timer++;
-                    config.timerElement.textContent = gameState.timer;
-                }, 1000);
-            }
-            
-            // 洗牌函数
-            function shuffleArray(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
+            updateBullets() {
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    const bullet = this.bullets[i];
+                    
+                    // 移动子弹
+                    if (bullet.homing) {
+                        // 追踪最近的敌人
+                        let closestEnemy = null;
+                        let closestDist = Infinity;
+                        
+                        for (const enemy of this.enemies) {
+                            const dx = enemy.x - bullet.x;
+                            const dy = enemy.y - bullet.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            
+                            if (dist < closestDist) {
+                                closestDist = dist;
+                                closestEnemy = enemy;
+                            }
+                        }
+                        
+                        if (closestEnemy) {
+                            const dx = closestEnemy.x - bullet.x;
+                            const dy = closestEnemy.y - bullet.y;
+                            const angle = Math.atan2(dy, dx);
+                            
+                            bullet.vx = Math.cos(angle) * bullet.speed;
+                            bullet.vy = Math.sin(angle) * bullet.speed;
+                        } else {
+                            bullet.vy = -bullet.speed;
+                        }
+                        
+                        bullet.x += bullet.vx;
+                        bullet.y += bullet.vy;
+                    } else if (bullet.vx !== undefined) {
+                        // 特殊攻击的子弹
+                        bullet.x += bullet.vx;
+                        bullet.y += bullet.vy;
+                    } else {
+                        // 普通子弹
+                        bullet.y -= bullet.speed;
+                    }
+                    
+                    // 移除超出屏幕的子弹
+                    if (bullet.y < -bullet.height || 
+                        bullet.y > this.height ||
+                        bullet.x < -bullet.width ||
+                        bullet.x > this.width) {
+                        this.bullets.splice(i, 1);
+                    }
                 }
-                return array;
             }
             
-            // 提示功能
-            function showHint() {
-                if (!gameState.isGameStarted || gameState.flippedCards.length > 0) {
-                    return;
+            updateEnemies() {
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const enemy = this.enemies[i];
+                    
+                    // 移动敌人
+                    enemy.y += enemy.speed;
+                    
+                    // 敌人射击
+                    if (enemy.shootTimer !== undefined) {
+                        enemy.shootTimer += this.deltaTime;
+                        
+                        if (enemy.shootTimer > 2.0) { // 每2秒射击一次
+                            enemy.shootTimer = 0;
+                            
+                            this.bullets.push({
+                                x: enemy.x,
+                                y: enemy.y + enemy.height / 2,
+                                width: 5,
+                                height: 10,
+                                speed: 5,
+                                damage: 10,
+                                color: '#ff006e',
+                                isEnemy: true
+                            });
+                        }
+                    }
+                    
+                    // 移除超出屏幕的敌人
+                    if (enemy.y > this.height + enemy.height) {
+                        this.enemies.splice(i, 1);
+                    }
+                }
+            }
+            
+            updatePowerUps() {
+                // 随机生成能量包
+                if (Math.random() < 0.005) { // 0.5%的几率每帧生成能量包
+                    this.powerUps.push({
+                        x: Math.random() * (this.width - 30) + 15,
+                        y: -30,
+                        width: 30,
+                        height: 30,
+                        speed: 2,
+                        type: Math.floor(Math.random() * 3) // 0: health, 1: shield, 2: energy
+                    });
                 }
                 
-                // 找到所有未匹配的卡片
-                const unmatchedCards = gameState.cards.filter(card => !card.isMatched && !card.isFlipped);
-                
-                if (unmatchedCards.length < 2) return;
-                
-                // 随机选择一对未匹配的卡片
-                const firstCard = unmatchedCards[Math.floor(Math.random() * unmatchedCards.length)];
-                const secondCard = unmatchedCards.find(card => 
-                    card.id !== firstCard.id && card.symbol === firstCard.symbol
-                );
-                
-                if (!secondCard) return;
-                
-                // 短暂显示这对卡片
-                firstCard.isFlipped = true;
-                secondCard.isFlipped = true;
-                renderCards();
-                
-                setTimeout(() => {
-                    firstCard.isFlipped = false;
-                    secondCard.isFlipped = false;
-                    renderCards();
-                }, 1000);
+                // 更新能量包位置
+                for (let i = this.powerUps.length - 1; i >= 0; i--) {
+                    const powerUp = this.powerUps[i];
+                    powerUp.y += powerUp.speed;
+                    
+                    // 移除超出屏幕的能量包
+                    if (powerUp.y > this.height + powerUp.height) {
+                        this.powerUps.splice(i, 1);
+                    }
+                }
             }
             
-            // 事件监听
-            config.restartButton.addEventListener('click', initGame);
-            config.hintButton.addEventListener('click', showHint);
-            config.playAgainButton.addEventListener('click', initGame);
+            updateParticles() {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const particle = this.particles[i];
+                    
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    particle.life -= 0.02;
+                    
+                    if (particle.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
             
-            // 初始化游戏
-            initGame();
+            checkCollisions() {
+                // 子弹与敌人碰撞
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    const bullet = this.bullets[i];
+                    
+                    if (bullet.isEnemy) continue; // 跳过敌人子弹
+                    
+                    for (let j = this.enemies.length - 1; j >= 0; j--) {
+                        const enemy = this.enemies[j];
+                        
+                        if (this.isColliding(bullet, enemy)) {
+                            // 造成伤害
+                            enemy.health -= bullet.damage;
+                            
+                            // 添加粒子效果
+                            for (let k = 0; k < 5; k++) {
+                                this.particles.push({
+                                    x: bullet.x,
+                                    y: bullet.y,
+                                    size: Math.random() * 3 + 1,
+                                    speedX: Math.random() * 4 - 2,
+                                    speedY: Math.random() * 4 - 2,
+                                    color: enemy.color,
+                                    life: 1.0
+                                });
+                            }
+                            
+                            // 移除子弹
+                            this.bullets.splice(i, 1);
+                            
+                            // 检查敌人是否被摧毁
+                            if (enemy.health <= 0) {
+                                this.score += enemy.points;
+                                this.kills++;
+                                
+                                // 添加爆炸粒子效果
+                                for (let k = 0; k < 20; k++) {
+                                    this.particles.push({
+                                        x: enemy.x,
+                                        y: enemy.y,
+                                        size: Math.random() * 5 + 2,
+                                        speedX: Math.random() * 6 - 3,
+                                        speedY: Math.random() * 6 - 3,
+                                        color: enemy.color,
+                                        life: 1.0
+                                    });
+                                }
+                                
+                                // 移除敌人
+                                this.enemies.splice(j, 1);
+                            }
+                            
+                            break;
+                        }
+                    }
+                }
+                
+                // 敌人子弹与玩家碰撞
+                for (let i = this.bullets.length - 1; i >= 0; i--) {
+                    const bullet = this.bullets[i];
+                    
+                    if (!bullet.isEnemy) continue;
+                    
+                    if (this.isColliding(bullet, this.player)) {
+                        // 造成伤害
+                        if (this.player.shield > 0) {
+                            this.player.shield -= bullet.damage;
+                            if (this.player.shield < 0) {
+                                this.player.health += this.player.shield; // 负值会减少生命值
+                                this.player.shield = 0;
+                            }
+                        } else {
+                            this.player.health -= bullet.damage;
+                        }
+                        
+                        // 添加粒子效果
+                        for (let k = 0; k < 10; k++) {
+                            this.particles.push({
+                                x: bullet.x,
+                                y: bullet.y,
+                                size: Math.random() * 3 + 1,
+                                speedX: Math.random() * 4 - 2,
+                                speedY: Math.random() * 4 - 2,
+                                color: '#4cc9f0',
+                                life: 1.0
+                            });
+                        }
+                        
+                        // 移除子弹
+                        this.bullets.splice(i, 1);
+                    }
+                }
+                
+                // 玩家与敌人碰撞
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const enemy = this.enemies[i];
+                    
+                    if (this.isColliding(this.player, enemy)) {
+                        // 造成伤害
+                        this.player.health -= 20;
+                        
+                        // 添加爆炸效果
+                        for (let k = 0; k < 30; k++) {
+                            this.particles.push({
+                                x: enemy.x,
+                                y: enemy.y,
+                                size: Math.random() * 5 + 2,
+                                speedX: Math.random() * 8 - 4,
+                                speedY: Math.random() * 8 - 4,
+                                color: enemy.color,
+                                life: 1.0
+                            });
+                        }
+                        
+                        // 移除敌人
+                        this.enemies.splice(i, 1);
+                    }
+                }
+                
+                // 玩家与能量包碰撞
+                for (let i = this.powerUps.length - 1; i >= 0; i--) {
+                    const powerUp = this.powerUps[i];
+                    
+                    if (this.isColliding(this.player, powerUp)) {
+                        switch(powerUp.type) {
+                            case 0: // 生命值
+                                this.player.health = Math.min(this.player.maxHealth, this.player.health + 30);
+                                break;
+                            case 1: // 护盾
+                                this.player.shield = Math.min(this.player.maxShield, this.player.shield + 50);
+                                break;
+                            case 2: // 能量
+                                this.player.energy = Math.min(this.player.maxEnergy, this.player.energy + 40);
+                                break;
+                        }
+                        
+                        // 移除能量包
+                        this.powerUps.splice(i, 1);
+                    }
+                }
+            }
+            
+            isColliding(obj1, obj2) {
+                return obj1.x < obj2.x + obj2.width &&
+                       obj1.x + obj1.width > obj2.x &&
+                       obj1.y < obj2.y + obj2.height &&
+                       obj1.y + obj1.height > obj2.y;
+            }
+            
+            checkGameOver() {
+                if (this.player.health <= 0) {
+                    this.gameState = 'gameover';
+                    document.getElementById('game-message').style.display = 'block';
+                    document.getElementById('message-title').textContent = '游戏结束';
+                    document.getElementById('message-text').textContent = `您的飞船已被摧毁！最终得分: ${this.score}`;
+                    
+                    // 保存高分
+                    this.saveHighScore();
+                }
+            }
+            
+            saveHighScore() {
+                // 这里简化实现，实际应用中应该使用后端或localStorage
+                console.log(`得分: ${this.score} 已保存`);
+            }
+            
+            showHighScores() {
+                // 这里简化实现，实际应用中应该从存储中获取
+                const scoresList = document.getElementById('scores-list');
+                scoresList.innerHTML = '';
+                
+                const scores = [
+                    { name: '玩家1', score: 15000 },
+                    { name: '玩家2', score: 12000 },
+                    { name: '玩家3', score: 10000 },
+                    { name: '玩家4', score: 8000 },
+                    { name: '玩家5', score: 5000 }
+                ];
+                
+                scores.forEach((score, index) => {
+                    const scoreItem = document.createElement('div');
+                    scoreItem.className = 'score-item';
+                    scoreItem.innerHTML = `
+                        <span>${index + 1}. ${score.name}</span>
+                        <span>${score.score}</span>
+                    `;
+                    scoresList.appendChild(scoreItem);
+                });
+            }
+            
+            drawBackground() {
+                // 绘制星空
+                this.ctx.fillStyle = 'white';
+                for (let i = 0; i < 100; i++) {
+                    const x = Math.random() * this.width;
+                    const y = (Math.random() * this.height + (Date.now() / 50)) % this.height;
+                    const size = Math.random() * 2;
+                    this.ctx.fillRect(x, y, size, size);
+                }
+            }
+            
+            draw() {
+                // 绘制玩家
+                this.drawPlayer();
+                
+                // 绘制子弹
+                this.drawBullets();
+                
+                // 绘制敌人
+                this.drawEnemies();
+                
+                // 绘制能量包
+                this.drawPowerUps();
+                
+                // 绘制粒子
+                this.drawParticles();
+            }
+            
+            drawPlayer() {
+                this.ctx.save();
+                this.ctx.translate(this.player.x, this.player.y);
+                
+                // 绘制飞船主体
+                this.ctx.fillStyle = '#4cc9f0';
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -this.player.height / 2);
+                this.ctx.lineTo(-this.player.width / 2, this.player.height / 2);
+                this.ctx.lineTo(this.player.width / 2, this.player.height / 2);
+                this.ctx.closePath();
+                this.ctx.fill();
+                
+                // 绘制飞船细节
+                this.ctx.fillStyle = '#4361ee';
+                this.ctx.fillRect(-10, 10, 20, 10);
+                
+                this.ctx.restore();
+            }
+            
+            drawBullets() {
+                for (const bullet of this.bullets) {
+                    this.ctx.fillStyle = bullet.color;
+                    this.ctx.fillRect(
+                        bullet.x - bullet.width / 2,
+                        bullet.y - bullet.height / 2,
+                        bullet.width,
+                        bullet.height
+                    );
+                }
+            }
+            
+            drawEnemies() {
+                for (const enemy of this.enemies) {
+                    this.ctx.save();
+                    this.ctx.translate(enemy.x, enemy.y);
+                    
+                    // 绘制敌人
+                    this.ctx.fillStyle = enemy.color;
+                    this.ctx.fillRect(
+                        -enemy.width / 2,
+                        -enemy.height / 2,
+                        enemy.width,
+                        enemy.height
+                    );
+                    
+                    // 绘制生命值条
+                    const healthPercent = enemy.health / enemy.maxHealth;
+                    this.ctx.fillStyle = 'red';
+                    this.ctx.fillRect(
+                        -enemy.width / 2,
+                        -enemy.height / 2 - 10,
+                        enemy.width * healthPercent,
+                        5
+                    );
+                    
+                    this.ctx.restore();
+                }
+            }
+            
+            drawPowerUps() {
+                for (const powerUp of this.powerUps) {
+                    this.ctx.save();
+                    this.ctx.translate(powerUp.x, powerUp.y);
+                    
+                    let color;
+                    switch(powerUp.type) {
+                        case 0: color = '#f72585'; break; // 生命值 - 粉色
+                        case 1: color = '#4cc9f0'; break; // 护盾 - 蓝色
+                        case 2: color = '#ffbe0b'; break; // 能量 - 黄色
+                    }
+                    
+                    this.ctx.fillStyle = color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, powerUp.width / 2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = '20px Arial';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    
+                    switch(powerUp.type) {
+                        case 0: this.ctx.fillText('H', 0, 0); break;
+                        case 1: this.ctx.fillText('S', 0, 0); break;
+                        case 2: this.ctx.fillText('E', 0, 0); break;
+                    }
+                    
+                    this.ctx.restore();
+                }
+            }
+            
+            drawParticles() {
+                for (const particle of this.particles) {
+                    this.ctx.save();
+                    this.ctx.globalAlpha = particle.life;
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    this.ctx.restore();
+                }
+            }
+            
+            initWeaponPanel() {
+                const weaponList = document.getElementById('weapon-list');
+                weaponList.innerHTML = '';
+                
+                const weapons = [
+                    { name: '激光炮', desc: '基础武器，无限弹药', icon: 'L' },
+                    { name: '等离子炮', desc: '双发武器，伤害中等', icon: 'P' },
+                    { name: '追踪导弹', desc: '追踪敌人，消耗能量', icon: 'M' }
+                ];
+                
+                weapons.forEach((weapon, index) => {
+                    const weaponElement = document.createElement('div');
+                    weaponElement.className = 'weapon';
+                    if (index === this.player.currentWeapon) {
+                        weaponElement.classList.add('active');
+                    }
+                    
+                    weaponElement.innerHTML = `
+                        <div class="weapon-icon">${weapon.icon}</div>
+                        <div>
+                            <div>${weapon.name}</div>
+                            <div style="font-size: 0.8rem; opacity: 0.7;">${weapon.desc}</div>
+                        </div>
+                    `;
+                    
+                    weaponList.appendChild(weaponElement);
+                });
+            }
+            
+            updateWeaponPanel() {
+                const weapons = document.querySelectorAll('.weapon');
+                weapons.forEach((weapon, index) => {
+                    if (index === this.player.currentWeapon) {
+                        weapon.classList.add('active');
+                    } else {
+                        weapon.classList.remove('active');
+                    }
+                });
+            }
+            
+            updateUI() {
+                // 更新状态文本
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('kills').textContent = this.kills;
+                
+                // 更新状态条
+                document.getElementById('health-bar').style.width = 
+                    `${(this.player.health / this.player.maxHealth) * 100}%`;
+                
+                document.getElementById('shield-bar').style.width = 
+                    `${(this.player.shield / this.player.maxShield) * 100}%`;
+                
+                document.getElementById('energy-bar').style.width = 
+                    `${(this.player.energy / this.player.maxEnergy) * 100}%`;
+            }
+        }
+
+        // 初始化游戏
+        window.addEventListener('load', () => {
+            const game = new SpaceShooterGame();
         });
     </script>
 </body>
