@@ -1,748 +1,236 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>自定义中国象棋</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .game-board {
-            flex: 1;
-            min-width: 500px;
-            background-color: #e9c46a;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        .controls {
-            flex: 0 0 300px;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #2a9d8f;
-        }
-        
-        .board {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 9/10;
-            margin: 0 auto;
-            background-color: #e9c46a;
-            border: 2px solid #8b4513;
-            display: grid;
-        }
-        
-        .cell {
-            position: relative;
-            border: 1px solid #8b4513;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        
-        .piece {
-            width: 80%;
-            height: 80%;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: grab;
-            user-select: none;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s;
-        }
-        
-        .piece.red {
-            background-color: #e63946;
-            color: #fff;
-        }
-        
-        .piece.black {
-            background-color: #1d3557;
-            color: #fff;
-        }
-        
-        .piece.selected {
-            transform: scale(1.1);
-            box-shadow: 0 0 10px 2px rgba(255, 215, 0, 0.8);
-        }
-        
-        .river {
-            grid-column: 1 / -1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            color: #457b9d;
-            font-weight: bold;
-        }
-        
-        .palace {
-            position: absolute;
-            width: 33.33%;
-            height: 33.33%;
-            border: 2px solid #8b4513;
-            pointer-events: none;
-        }
-        
-        .palace-top {
-            top: 0;
-            left: 33.33%;
-        }
-        
-        .palace-bottom {
-            bottom: 0;
-            left: 33.33%;
-        }
-        
-        .diagonal {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-        
-        .diagonal::before, .diagonal::after {
-            content: '';
-            position: absolute;
-            width: 141%;
-            height: 2px;
-            background-color: #8b4513;
-            top: 50%;
-            left: -20%;
-        }
-        
-        .diagonal::before {
-            transform: rotate(45deg);
-        }
-        
-        .diagonal::after {
-            transform: rotate(-45deg);
-        }
-        
-        .control-group {
-            margin-bottom: 15px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        
-        input, select, button {
-            width: 100%;
-            padding: 8px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        button {
-            background-color: #2a9d8f;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.3s;
-        }
-        
-        button:hover {
-            background-color: #1d6f65;
-        }
-        
-        .game-status {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f1faee;
-            border-radius: 4px;
-            text-align: center;
-        }
-        
-        .current-player {
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        
-        .current-player.red {
-            color: #e63946;
-        }
-        
-        .current-player.black {
-            color: #1d3557;
-        }
-        
-        .piece-selector {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            margin-top: 10px;
-        }
-        
-        .piece-option {
-            width: 100%;
-            aspect-ratio: 1;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8em;
-            cursor: pointer;
-            border: 1px solid #ddd;
-        }
-        
-        .piece-option.red {
-            background-color: #e63946;
-            color: #fff;
-        }
-        
-        .piece-option.black {
-            background-color: #1d3557;
-            color: #fff;
-        }
-        
-        .piece-option.empty {
-            background-color: #f1faee;
-            color: #333;
-        }
-        
-        .piece-option.selected {
-            border: 2px solid #2a9d8f;
-        }
-        
-        .instructions {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f1faee;
-            border-radius: 4px;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 10px;
-            color: #2a9d8f;
-        }
-        
-        .instructions ul {
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 5px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Bug 修复版</title>
+<style>
+body { margin:0; overflow:hidden; background:#000; }
+canvas { display:block; cursor:crosshair; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="game-board">
-            <h1>自定义中国象棋</h1>
-            <div class="board" id="board">
-                <!-- 棋盘将通过JavaScript动态生成 -->
-            </div>
-        </div>
-        
-        <div class="controls">
-            <div class="control-group">
-                <h2>棋盘设置</h2>
-                <label for="rows">行数:</label>
-                <input type="number" id="rows" min="5" max="20" value="10">
-                
-                <label for="cols">列数:</label>
-                <input type="number" id="cols" min="5" max="20" value="9">
-                
-                <button id="apply-size">应用尺寸</button>
-            </div>
-            
-            <div class="control-group">
-                <h2>棋子选择</h2>
-                <div class="piece-selector" id="piece-selector">
-                    <!-- 棋子选择器将通过JavaScript动态生成 -->
-                </div>
-                <p>点击棋子选择，然后点击棋盘放置</p>
-            </div>
-            
-            <div class="control-group">
-                <button id="reset-board">重置棋盘</button>
-                <button id="default-setup">默认布局</button>
-                <button id="clear-board">清空棋盘</button>
-            </div>
-            
-            <div class="game-status">
-                <h2>游戏状态</h2>
-                <p>当前玩家: <span class="current-player red" id="current-player">红方</span></p>
-                <button id="switch-player">切换玩家</button>
-            </div>
-            
-            <div class="instructions">
-                <h3>游戏说明</h3>
-                <ul>
-                    <li>点击棋子选中，然后点击目标位置移动</li>
-                    <li>红方先行，点击"切换玩家"可改变当前玩家</li>
-                    <li>使用"棋子选择器"自定义棋盘布局</li>
-                    <li>支持标准中国象棋规则</li>
-                </ul>
-            </div>
-        </div>
-    </div>
+<canvas id="game"></canvas>
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+addEventListener("resize",resize);resize();
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // 游戏状态
-            const gameState = {
-                rows: 10,
-                cols: 9,
-                board: [],
-                currentPlayer: 'red',
-                selectedPiece: null,
-                selectedPieceType: 'red_ju', // 默认选择的棋子
-                isPlacingMode: false
-            };
+// ================= 玩家 =================
+let player = { x:0,y:0,speed:2,hp:100,maxHp:100,regen:0 };
 
-            // 棋子类型和显示字符
-            const pieceTypes = {
-                'red_ju': { char: '车', color: 'red' },
-                'red_ma': { char: '马', color: 'red' },
-                'red_xiang': { char: '相', color: 'red' },
-                'red_shi': { char: '仕', color: 'red' },
-                'red_jiang': { char: '帅', color: 'red' },
-                'red_pao': { char: '炮', color: 'red' },
-                'red_bing': { char: '兵', color: 'red' },
-                'black_ju': { char: '車', color: 'black' },
-                'black_ma': { char: '馬', color: 'black' },
-                'black_xiang': { char: '象', color: 'black' },
-                'black_shi': { char: '士', color: 'black' },
-                'black_jiang': { char: '将', color: 'black' },
-                'black_pao': { char: '砲', color: 'black' },
-                'black_bing': { char: '卒', color: 'black' },
-                'empty': { char: '', color: '' }
-            };
+// ================= 输入 =================
+const keys={};
+addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true);
+addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
 
-            // DOM元素
-            const boardElement = document.getElementById('board');
-            const rowsInput = document.getElementById('rows');
-            const colsInput = document.getElementById('cols');
-            const applySizeButton = document.getElementById('apply-size');
-            const resetBoardButton = document.getElementById('reset-board');
-            const defaultSetupButton = document.getElementById('default-setup');
-            const clearBoardButton = document.getElementById('clear-board');
-            const currentPlayerElement = document.getElementById('current-player');
-            const switchPlayerButton = document.getElementById('switch-player');
-            const pieceSelectorElement = document.getElementById('piece-selector');
+let mouse={x:0,y:0};
+canvas.addEventListener("mousemove",e=>{mouse.x=e.clientX;mouse.y=e.clientY;});
 
-            // 初始化游戏
-            function initGame() {
-                createBoard();
-                setupPieceSelector();
-                updateGameStatus();
-            }
+// ================= 工具 =================
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function dir(){
+    const cx=canvas.width/2, cy=canvas.height/2;
+    let dx=mouse.x-cx, dy=mouse.y-cy;
+    let l=Math.hypot(dx,dy); if(!l)return null;
+    return {x:dx/l,y:dy/l};
+}
+const toScreen=(x,y)=>({x:x-player.x+canvas.width/2,y:y-player.y+canvas.height/2});
 
-            // 创建棋盘
-            function createBoard() {
-                boardElement.innerHTML = '';
-                gameState.board = [];
-                
-                // 设置棋盘网格布局
-                boardElement.style.gridTemplateRows = `repeat(${gameState.rows}, 1fr)`;
-                boardElement.style.gridTemplateColumns = `repeat(${gameState.cols}, 1fr)`;
-                
-                // 创建单元格
-                for (let row = 0; row < gameState.rows; row++) {
-                    gameState.board[row] = [];
-                    for (let col = 0; col < gameState.cols; col++) {
-                        const cell = document.createElement('div');
-                        cell.className = 'cell';
-                        cell.dataset.row = row;
-                        cell.dataset.col = col;
-                        
-                        // 添加点击事件
-                        cell.addEventListener('click', () => handleCellClick(row, col));
-                        
-                        boardElement.appendChild(cell);
-                        gameState.board[row][col] = 'empty';
-                    }
-                }
-                
-                // 添加楚河汉界
-                if (gameState.rows >= 10 && gameState.cols >= 9) {
-                    const riverRow = Math.floor(gameState.rows / 2);
-                    const riverCell = document.createElement('div');
-                    riverCell.className = 'river';
-                    riverCell.textContent = '楚河        汉界';
-                    riverCell.style.gridRow = riverRow;
-                    riverCell.style.gridColumn = '1 / -1';
-                    boardElement.appendChild(riverCell);
-                    
-                    // 添加九宫格
-                    const palaceSize = Math.floor(gameState.cols / 3);
-                    
-                    // 上方九宫格
-                    const topPalace = document.createElement('div');
-                    topPalace.className = 'palace palace-top';
-                    topPalace.style.width = `${palaceSize * 100 / gameState.cols}%`;
-                    topPalace.style.height = `${palaceSize * 100 / gameState.rows}%`;
-                    boardElement.appendChild(topPalace);
-                    
-                    // 下方九宫格
-                    const bottomPalace = document.createElement('div');
-                    bottomPalace.className = 'palace palace-bottom';
-                    bottomPalace.style.width = `${palaceSize * 100 / gameState.cols}%`;
-                    bottomPalace.style.height = `${palaceSize * 100 / gameState.rows}%`;
-                    boardElement.appendChild(bottomPalace);
-                    
-                    // 添加九宫格对角线
-                    const topDiagonal = document.createElement('div');
-                    topDiagonal.className = 'diagonal';
-                    topDiagonal.style.width = `${palaceSize * 100 / gameState.cols}%`;
-                    topDiagonal.style.height = `${palaceSize * 100 / gameState.rows}%`;
-                    topDiagonal.style.top = '0';
-                    topDiagonal.style.left = `${(gameState.cols - palaceSize) / 2 * 100 / gameState.cols}%`;
-                    boardElement.appendChild(topDiagonal);
-                    
-                    const bottomDiagonal = document.createElement('div');
-                    bottomDiagonal.className = 'diagonal';
-                    bottomDiagonal.style.width = `${palaceSize * 100 / gameState.cols}%`;
-                    bottomDiagonal.style.height = `${palaceSize * 100 / gameState.rows}%`;
-                    bottomDiagonal.style.bottom = '0';
-                    bottomDiagonal.style.left = `${(gameState.cols - palaceSize) / 2 * 100 / gameState.cols}%`;
-                    boardElement.appendChild(bottomDiagonal);
-                }
-            }
+// ================= 敌人 =================
+const enemies=[];
+let spawnT=0;
+function spawnEnemy(){
+    enemies.push({
+        x:player.x+(Math.random()*600-300),
+        y:player.y+(Math.random()*600-300),
+        hp:60,
+        speed:0.6,
+        baseSpeed:0.6,
+        damage:10,
+        burn:0,
+        slow:0
+    });
+}
 
-            // 设置棋子选择器
-            function setupPieceSelector() {
-                pieceSelectorElement.innerHTML = '';
-                
-                // 添加空选项
-                const emptyOption = document.createElement('div');
-                emptyOption.className = 'piece-option empty selected';
-                emptyOption.textContent = '空';
-                emptyOption.dataset.type = 'empty';
-                emptyOption.addEventListener('click', () => selectPieceType('empty'));
-                pieceSelectorElement.appendChild(emptyOption);
-                
-                // 添加红方棋子
-                for (const [type, info] of Object.entries(pieceTypes)) {
-                    if (type === 'empty') continue;
-                    if (info.color === 'red') {
-                        const option = document.createElement('div');
-                        option.className = 'piece-option red';
-                        option.textContent = info.char;
-                        option.dataset.type = type;
-                        option.addEventListener('click', () => selectPieceType(type));
-                        pieceSelectorElement.appendChild(option);
-                    }
-                }
-                
-                // 添加黑方棋子
-                for (const [type, info] of Object.entries(pieceTypes)) {
-                    if (type === 'empty') continue;
-                    if (info.color === 'black') {
-                        const option = document.createElement('div');
-                        option.className = 'piece-option black';
-                        option.textContent = info.char;
-                        option.dataset.type = type;
-                        option.addEventListener('click', () => selectPieceType(type));
-                        pieceSelectorElement.appendChild(option);
-                    }
-                }
-            }
+// ================= 技能 =================
+const swords=[], fireballs=[], ice=[], lightnings=[];
 
-            // 选择棋子类型
-            function selectPieceType(type) {
-                gameState.selectedPieceType = type;
-                
-                // 更新选择器UI
-                document.querySelectorAll('.piece-option').forEach(option => {
-                    option.classList.remove('selected');
-                });
-                
-                document.querySelector(`.piece-option[data-type="${type}"]`).classList.add('selected');
-                
-                // 进入放置模式
-                gameState.isPlacingMode = true;
-            }
+// 飞剑
+function sword(){
+    const d=dir(); if(!d)return;
+    swords.push({x:player.x,y:player.y,vx:d.x*9,vy:d.y*9,life:160,damage:10});
+}
 
-            // 处理单元格点击
-            function handleCellClick(row, col) {
-                // 如果在放置模式下
-                if (gameState.isPlacingMode) {
-                    placePiece(row, col);
-                    return;
-                }
-                
-                // 如果已经选中了一个棋子
-                if (gameState.selectedPiece) {
-                    const [selectedRow, selectedCol] = gameState.selectedPiece;
-                    
-                    // 如果点击的是同一个棋子，取消选择
-                    if (selectedRow === row && selectedCol === col) {
-                        clearSelection();
-                        return;
-                    }
-                    
-                    // 尝试移动棋子
-                    if (isValidMove(selectedRow, selectedCol, row, col)) {
-                        movePiece(selectedRow, selectedCol, row, col);
-                    } else {
-                        // 如果点击的是另一个己方棋子，选中它
-                        const piece = gameState.board[row][col];
-                        if (piece !== 'empty' && pieceTypes[piece].color === gameState.currentPlayer) {
-                            selectPiece(row, col);
-                        } else {
-                            clearSelection();
-                        }
-                    }
-                } else {
-                    // 如果点击了一个棋子
-                    const piece = gameState.board[row][col];
-                    if (piece !== 'empty' && pieceTypes[piece].color === gameState.currentPlayer) {
-                        selectPiece(row, col);
-                    }
-                }
-            }
+// ⚡ 闪电
+function lightning(){
+    const d=dir(); if(!d)return;
+    const pts=[], range=300;
+    for(let i=0;i<=10;i++){
+        let t=i/10,o=(Math.random()-0.5)*20;
+        pts.push({x:player.x+d.x*range*t+d.y*o,y:player.y+d.y*range*t-d.x*o});
+    }
+    lightnings.push({pts,life:10,damage:50});
+}
 
-            // 放置棋子
-            function placePiece(row, col) {
-                gameState.board[row][col] = gameState.selectedPieceType;
-                renderBoard();
-                gameState.isPlacingMode = false;
-            }
+// 🔥 火球
+function fire(){
+    const d=dir(); if(!d)return;
+    fireballs.push({x:player.x,y:player.y,vx:d.x*4,vy:d.y*4,life:180,damage:20});
+}
 
-            // 选中棋子
-            function selectPiece(row, col) {
-                clearSelection();
-                
-                gameState.selectedPiece = [row, col];
-                
-                const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                const piece = cell.querySelector('.piece');
-                if (piece) {
-                    piece.classList.add('selected');
-                }
-            }
-
-            // 清除选择
-            function clearSelection() {
-                if (gameState.selectedPiece) {
-                    const [row, col] = gameState.selectedPiece;
-                    const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                    if (cell) {
-                        const piece = cell.querySelector('.piece');
-                        if (piece) {
-                            piece.classList.remove('selected');
-                        }
-                    }
-                    gameState.selectedPiece = null;
-                }
-            }
-
-            // 移动棋子
-            function movePiece(fromRow, fromCol, toRow, toCol) {
-                // 检查是否吃子
-                const targetPiece = gameState.board[toRow][toCol];
-                
-                // 移动棋子
-                gameState.board[toRow][toCol] = gameState.board[fromRow][fromCol];
-                gameState.board[fromRow][fromCol] = 'empty';
-                
-                // 清除选择
-                clearSelection();
-                
-                // 切换玩家
-                gameState.currentPlayer = gameState.currentPlayer === 'red' ? 'black' : 'red';
-                
-                // 更新棋盘和状态
-                renderBoard();
-                updateGameStatus();
-                
-                // 检查游戏结束条件
-                if (targetPiece.includes('jiang')) {
-                    setTimeout(() => {
-                        alert(`${gameState.currentPlayer === 'red' ? '黑方' : '红方'}获胜！`);
-                        resetToDefault();
-                    }, 100);
-                }
-            }
-
-            // 验证移动是否合法
-            function isValidMove(fromRow, fromCol, toRow, toCol) {
-                const piece = gameState.board[fromRow][fromCol];
-                if (piece === 'empty') return false;
-                
-                const pieceInfo = pieceTypes[piece];
-                const targetPiece = gameState.board[toRow][toCol];
-                
-                // 不能吃自己的棋子
-                if (targetPiece !== 'empty' && pieceTypes[targetPiece].color === pieceInfo.color) {
-                    return false;
-                }
-                
-                // 这里应该实现各种棋子的移动规则
-                // 由于时间关系，这里只实现基本移动逻辑
-                // 在实际游戏中，应该为每种棋子实现完整的移动规则
-                
-                return true; // 简化版，允许所有移动
-            }
-
-            // 渲染棋盘
-            function renderBoard() {
-                // 清除所有棋子
-                document.querySelectorAll('.piece').forEach(piece => piece.remove());
-                
-                // 添加棋子
-                for (let row = 0; row < gameState.rows; row++) {
-                    for (let col = 0; col < gameState.cols; col++) {
-                        const pieceType = gameState.board[row][col];
-                        if (pieceType !== 'empty') {
-                            const cell = document.querySelector(`.cell[data-row="${row}"][data-col="${col}"]`);
-                            const piece = document.createElement('div');
-                            piece.className = `piece ${pieceTypes[pieceType].color}`;
-                            piece.textContent = pieceTypes[pieceType].char;
-                            cell.appendChild(piece);
-                        }
-                    }
-                }
-            }
-
-            // 更新游戏状态显示
-            function updateGameStatus() {
-                currentPlayerElement.textContent = gameState.currentPlayer === 'red' ? '红方' : '黑方';
-                currentPlayerElement.className = `current-player ${gameState.currentPlayer}`;
-            }
-
-            // 重置为默认布局
-            function resetToDefault() {
-                // 清空棋盘
-                for (let row = 0; row < gameState.rows; row++) {
-                    for (let col = 0; col < gameState.cols; col++) {
-                        gameState.board[row][col] = 'empty';
-                    }
-                }
-                
-                // 设置默认棋子布局（如果棋盘尺寸允许）
-                if (gameState.rows >= 10 && gameState.cols >= 9) {
-                    // 红方布局
-                    gameState.board[9][0] = 'red_ju';
-                    gameState.board[9][1] = 'red_ma';
-                    gameState.board[9][2] = 'red_xiang';
-                    gameState.board[9][3] = 'red_shi';
-                    gameState.board[9][4] = 'red_jiang';
-                    gameState.board[9][5] = 'red_shi';
-                    gameState.board[9][6] = 'red_xiang';
-                    gameState.board[9][7] = 'red_ma';
-                    gameState.board[9][8] = 'red_ju';
-                    
-                    gameState.board[7][1] = 'red_pao';
-                    gameState.board[7][7] = 'red_pao';
-                    
-                    gameState.board[6][0] = 'red_bing';
-                    gameState.board[6][2] = 'red_bing';
-                    gameState.board[6][4] = 'red_bing';
-                    gameState.board[6][6] = 'red_bing';
-                    gameState.board[6][8] = 'red_bing';
-                    
-                    // 黑方布局
-                    gameState.board[0][0] = 'black_ju';
-                    gameState.board[0][1] = 'black_ma';
-                    gameState.board[0][2] = 'black_xiang';
-                    gameState.board[0][3] = 'black_shi';
-                    gameState.board[0][4] = 'black_jiang';
-                    gameState.board[0][5] = 'black_shi';
-                    gameState.board[0][6] = 'black_xiang';
-                    gameState.board[0][7] = 'black_ma';
-                    gameState.board[0][8] = 'black_ju';
-                    
-                    gameState.board[2][1] = 'black_pao';
-                    gameState.board[2][7] = 'black_pao';
-                    
-                    gameState.board[3][0] = 'black_bing';
-                    gameState.board[3][2] = 'black_bing';
-                    gameState.board[3][4] = 'black_bing';
-                    gameState.board[3][6] = 'black_bing';
-                    gameState.board[3][8] = 'black_bing';
-                }
-                
-                // 重置当前玩家
-                gameState.currentPlayer = 'red';
-                
-                // 更新UI
-                renderBoard();
-                updateGameStatus();
-                clearSelection();
-            }
-
-            // 清空棋盘
-            function clearBoard() {
-                for (let row = 0; row < gameState.rows; row++) {
-                    for (let col = 0; col < gameState.cols; col++) {
-                        gameState.board[row][col] = 'empty';
-                    }
-                }
-                
-                renderBoard();
-                clearSelection();
-            }
-
-            // 事件监听器
-            applySizeButton.addEventListener('click', function() {
-                const newRows = parseInt(rowsInput.value);
-                const newCols = parseInt(colsInput.value);
-                
-                if (newRows >= 5 && newRows <= 20 && newCols >= 5 && newCols <= 20) {
-                    gameState.rows = newRows;
-                    gameState.cols = newCols;
-                    createBoard();
-                    clearBoard();
-                } else {
-                    alert('行数和列数必须在5到20之间');
-                }
-            });
-            
-            resetBoardButton.addEventListener('click', resetToDefault);
-            defaultSetupButton.addEventListener('click', resetToDefault);
-            clearBoardButton.addEventListener('click', clearBoard);
-            
-            switchPlayerButton.addEventListener('click', function() {
-                gameState.currentPlayer = gameState.currentPlayer === 'red' ? 'black' : 'red';
-                updateGameStatus();
-                clearSelection();
-            });
-
-            // 初始化游戏
-            initGame();
-            resetToDefault();
+// ❄ 冰锥
+function iceCone(){
+    const d=dir(); if(!d)return;
+    const c=5,s=Math.PI/6;
+    for(let i=0;i<c;i++){
+        let a=-s/2+s*i/(c-1),cs=Math.cos(a),sn=Math.sin(a);
+        ice.push({
+            x:player.x,y:player.y,
+            vx:(d.x*cs-d.y*sn)*5,
+            vy:(d.x*sn+d.y*cs)*5,
+            life:120,damage:12
         });
-    </script>
+    }
+}
+
+addEventListener("keydown",e=>{
+    if(e.key==="1")sword();
+    if(e.key==="2")lightning();
+    if(e.key==="3")fire();
+    if(e.key==="4")iceCone();
+});
+
+// ================= 更新 =================
+function update(){
+    if(keys.w)player.y-=player.speed;
+    if(keys.s)player.y+=player.speed;
+    if(keys.a)player.x-=player.speed;
+    if(keys.d)player.x+=player.speed;
+
+    if(++player.regen>=60){
+        player.regen=0;
+        player.hp=Math.min(100,player.hp+1);
+    }
+
+    if(++spawnT>60){spawnT=0;spawnEnemy();}
+
+    for(const e of enemies){
+        if(e.burn>0){ e.burn--; if(e.burn%60===0)e.hp-=5; }
+        if(e.slow>0){ e.slow--; e.speed=e.baseSpeed*0.4; }
+        else e.speed=e.baseSpeed;
+
+        let dx=player.x-e.x,dy=player.y-e.y,l=Math.hypot(dx,dy)||1;
+        e.x+=dx/l*e.speed; e.y+=dy/l*e.speed;
+
+        if(dist(e,player)<8) player.hp-=e.damage/60;
+    }
+
+    // 移动 + 生命周期
+    swords.forEach(s=>{s.x+=s.vx;s.y+=s.vy;s.life--;});
+    fireballs.forEach(f=>{f.x+=f.vx;f.y+=f.vy;f.life--;});
+    ice.forEach(i=>{i.x+=i.vx;i.y+=i.vy;i.life--;});
+    lightnings.forEach(l=>l.life--);
+
+    // 命中
+    for(let i=enemies.length-1;i>=0;i--){
+        const e=enemies[i];
+
+        swords.forEach(s=>{ if(dist(e,s)<6)e.hp-=s.damage; });
+
+        for(let j=fireballs.length-1;j>=0;j--){
+            if(dist(e,fireballs[j])<10){
+                e.hp-=20; e.burn=180;
+                fireballs.splice(j,1);
+            }
+        }
+
+        for(let j=ice.length-1;j>=0;j--){
+            if(dist(e,ice[j])<6){
+                e.hp-=12; e.slow=120;
+                ice.splice(j,1);
+            }
+        }
+
+        for(const l of lightnings){
+            for(const p of l.pts){
+                if(dist(e,p)<12){ e.hp-=50; break; }
+            }
+        }
+
+        if(e.hp<=0) enemies.splice(i,1);
+    }
+
+    // ✅ 正确清理
+    for(let i=swords.length-1;i>=0;i--) if(swords[i].life<=0) swords.splice(i,1);
+    for(let i=fireballs.length-1;i>=0;i--) if(fireballs[i].life<=0) fireballs.splice(i,1);
+    for(let i=ice.length-1;i>=0;i--) if(ice[i].life<=0) ice.splice(i,1);
+    for(let i=lightnings.length-1;i>=0;i--) if(lightnings[i].life<=0) lightnings.splice(i,1);
+}
+
+// ================= 绘制 =================
+function draw(){
+    ctx.fillStyle="#111";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // 敌人高亮
+    for(const e of enemies){
+        const p=toScreen(e.x,e.y);
+        if(e.burn>0) ctx.fillStyle=Math.random()<0.5?"#ff8800":"#ffaa00";
+        else if(e.slow>0) ctx.fillStyle="#66ccff";
+        else ctx.fillStyle="#00ff66";
+        ctx.fillRect(p.x-1,p.y-1,3,3);
+    }
+
+    ctx.fillStyle="yellow";
+    ctx.fillRect(canvas.width/2-1,canvas.height/2-1,3,3);
+
+    ctx.fillStyle="#ddd";
+    swords.forEach(s=>{
+        const p=toScreen(s.x,s.y);
+        ctx.fillRect(p.x-1,p.y-1,2,2);
+    });
+
+    fireballs.forEach(f=>{
+        const p=toScreen(f.x,f.y);
+        let g=ctx.createRadialGradient(p.x,p.y,1,p.x,p.y,6);
+        g.addColorStop(0,"#fff5aa");
+        g.addColorStop(1,"#ff5500");
+        ctx.fillStyle=g;
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,5,0,Math.PI*2);
+        ctx.fill();
+    });
+
+    ctx.fillStyle="#99ddff";
+    ice.forEach(i=>{
+        const p=toScreen(i.x,i.y);
+        ctx.fillRect(p.x-1,p.y-1,2,2);
+    });
+
+    ctx.strokeStyle="#66ccff"; ctx.lineWidth=2;
+    lightnings.forEach(l=>{
+        ctx.beginPath();
+        const s=toScreen(l.pts[0].x,l.pts[0].y);
+        ctx.moveTo(s.x,s.y);
+        l.pts.forEach(p=>{
+            const sp=toScreen(p.x,p.y);
+            ctx.lineTo(sp.x,sp.y);
+        });
+        ctx.stroke();
+    });
+
+    ctx.fillStyle="red";
+    ctx.fillRect(20,20,100,6);
+    ctx.fillStyle="lime";
+    ctx.fillRect(20,20,player.hp,6);
+}
+
+(function loop(){
+    update();
+    draw();
+    requestAnimationFrame(loop);
+})();
+</script>
 </body>
 </html>
